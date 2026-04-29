@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -17,19 +18,22 @@ const (
 type Runtime struct {
 	GOOS   string
 	GOARCH string
+	LibC   string
 }
 
-func New() *Runtime {
+func New(ctx context.Context) *Runtime {
 	return &Runtime{
 		GOOS:   goos(),
 		GOARCH: goarch(),
+		LibC:   libc(ctx),
 	}
 }
 
-func NewR() *Runtime {
+func NewR(ctx context.Context) *Runtime {
 	return &Runtime{
 		GOOS:   runtime.GOOS,
 		GOARCH: runtime.GOARCH,
+		LibC:   detectLibC(ctx),
 	}
 }
 
@@ -66,6 +70,13 @@ func goarch() string {
 		return s
 	}
 	return runtime.GOARCH
+}
+
+func libc(ctx context.Context) string {
+	if s := os.Getenv("AQUA_LIBC"); s != "" {
+		return s
+	}
+	return detectLibC(ctx)
 }
 
 func GOOSList() []string {
